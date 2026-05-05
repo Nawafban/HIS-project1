@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> – HIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>📋 Medical Records</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <% if (success) { %><div class="alert alert-success">✅ <%= success %></div><% } %>
+    <% if (error)   { %><div class="alert alert-error">⚠️ <%= error %></div><% } %>
+
+    <!-- ADD RECORD -->
+    <div class="card" style="margin-bottom:32px;">
+      <div class="form-section-title">Add Medical Record</div>
+      <form action="/records" method="post" novalidate>
+        <div class="form-row form-row-3">
+          <div class="form-group">
+            <label>Patient <span class="required">*</span></label>
+            <select name="patient_id" required>
+              <option value="">Select patient</option>
+              <% patients.forEach(p => { %>
+                <option value="<%= p.patient_id %>"><%= p.full_name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Doctor <span class="required">*</span></label>
+            <select name="doctor_id" required>
+              <option value="">Select doctor</option>
+              <% doctors.forEach(d => { %>
+                <option value="<%= d.doctor_id %>"><%= d.full_name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Visit Date <span class="required">*</span></label>
+            <input type="date" name="visit_date" required />
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label>Diagnosis <span class="required">*</span></label>
+            <input type="text" name="diagnosis" placeholder="e.g. Mild hypertension" required />
+          </div>
+          <div class="form-group">
+            <label>Record Type <span class="required">*</span></label>
+            <select name="record_type" required>
+              <% ['checkup','follow-up','emergency','surgery','lab','consultation'].forEach(t => { %>
+                <option value="<%= t %>"><%= t.charAt(0).toUpperCase()+t.slice(1) %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="form-row form-row-3">
+          <div class="form-group">
+            <label>Prescription</label>
+            <input type="text" name="prescription" placeholder="e.g. Amlodipine 5mg daily" />
+          </div>
+          <div class="form-group">
+            <label>Treatment Notes</label>
+            <input type="text" name="treatment_notes" placeholder="e.g. Monitor BP weekly" />
+          </div>
+          <div class="form-group">
+            <label>Test Results</label>
+            <input type="text" name="test_results" placeholder="e.g. BP: 140/90" />
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <button type="submit" class="btn btn-primary">➕ Add Record</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- RECORDS TABLE -->
+    <div class="card">
+      <div class="form-section-title" style="margin-bottom:20px;">All Medical Records (<%= records.length %>)</div>
+      <% if (!records.length) { %>
+        <p class="text-muted text-center" style="padding:24px;">No records found.</p>
+      <% } else { %>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Visit Date</th><th>Diagnosis</th><th>Type</th><th>Prescription</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <% records.forEach(r => { %>
+              <tr>
+                <td><code><%= r.record_id %></code></td>
+                <td><strong><%= r.patient_name %></strong></td>
+                <td><%= r.doctor_name %></td>
+                <td style="white-space:nowrap;font-size:0.88rem"><%= new Date(r.visit_date).toLocaleDateString('en-SA') %></td>
+                <td style="font-size:0.88rem;max-width:180px"><%= r.diagnosis %></td>
+                <td><span class="badge badge-open" style="background:rgba(0,188,212,0.1);color:var(--accent-dark);text-transform:capitalize"><%= r.record_type %></span></td>
+                <td style="font-size:0.82rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<%= r.prescription %>"><%= r.prescription||'—' %></td>
+                <td>
+                  <div style="display:flex;gap:6px;">
+                    <button onclick="toggleEdit('edit-<%= r.record_id %>')" class="btn btn-ghost btn-sm">Edit</button>
+                    <form action="/records/<%= r.record_id %>?_method=DELETE" method="post">
+                      <button type="submit" class="btn btn-danger btn-sm" data-confirm="Delete this medical record?">Del</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <tr id="edit-<%= r.record_id %>" style="display:none;background:var(--surface-2);">
+                <td colspan="8" style="padding:20px;">
+                  <form action="/records/<%= r.record_id %>?_method=PUT" method="post">
+                    <div class="form-row form-row-2">
+                      <div class="form-group"><label>Diagnosis</label><input type="text" name="diagnosis" value="<%= r.diagnosis %>" required /></div>
+                      <div class="form-group"><label>Record Type</label>
+                        <select name="record_type">
+                          <% ['checkup','follow-up','emergency','surgery','lab','consultation'].forEach(t => { %>
+                            <option value="<%= t %>" <%= r.record_type===t?'selected':'' %>><%= t.charAt(0).toUpperCase()+t.slice(1) %></option>
+                          <% }) %>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-row form-row-3">
+                      <div class="form-group"><label>Prescription</label><input type="text" name="prescription" value="<%= r.prescription||'' %>" /></div>
+                      <div class="form-group"><label>Treatment Notes</label><input type="text" name="treatment_notes" value="<%= r.treatment_notes||'' %>" /></div>
+                      <div class="form-group"><label>Test Results</label><input type="text" name="test_results" value="<%= r.test_results||'' %>" /></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">💾 Save</button>
+                    <button type="button" onclick="toggleEdit('edit-<%= r.record_id %>')" class="btn btn-ghost btn-sm">Cancel</button>
+                  </form>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<footer><p>© 2026 HIS – CS340 · SE371 Course</p></footer>
+<script src="/js/main.js"></script>
+<script>function toggleEdit(id){const r=document.getElementById(id);r.style.display=r.style.display==='none'?'table-row':'none';}</script>
+</body>
+</html>

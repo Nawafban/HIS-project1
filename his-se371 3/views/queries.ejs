@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %> – HIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .member-section{margin-bottom:56px;}
+    .member-header{background:linear-gradient(135deg,var(--primary) 0%,#0d3060 100%);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    .member-header h2{color:#fff;font-family:var(--font-display);font-size:1.3rem;font-weight:800;margin:0;}
+    .member-header .meta{color:rgba(255,255,255,0.6);font-size:0.85rem;}
+    .entity-badge{background:rgba(0,188,212,0.15);border:1px solid rgba(0,188,212,0.4);color:#00bcd4;padding:5px 14px;border-radius:100px;font-size:0.82rem;font-weight:600;}
+    .queries-body{border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);overflow:hidden;}
+    .query-type-header{padding:12px 20px;font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+    .query-type-header.basic{background:rgba(0,200,150,0.07);color:#00836a;border-bottom:1px solid rgba(0,200,150,0.2);}
+    .query-type-header.advanced{background:rgba(0,188,212,0.07);color:#007c91;border-bottom:1px solid rgba(0,188,212,0.2);}
+    .query-item{border-bottom:1px solid var(--border);}
+    .query-item:last-child{border-bottom:none;}
+    .query-header{padding:14px 20px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background 0.2s;user-select:none;}
+    .query-header:hover{background:var(--surface-2);}
+    .query-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;}
+    .basic .query-num{background:rgba(0,200,150,0.12);color:#00836a;}
+    .advanced .query-num{background:rgba(0,188,212,0.12);color:#007c91;}
+    .query-title{font-weight:600;font-size:0.92rem;color:var(--text);flex:1;}
+    .count-pill{display:inline-block;background:var(--bg-dark);border:1px solid var(--border);border-radius:100px;padding:2px 9px;font-size:0.72rem;color:var(--text-muted);margin-left:8px;font-weight:400;}
+    .query-toggle{color:var(--text-muted);font-size:0.8rem;transition:transform 0.2s;}
+    .query-toggle.open{transform:rotate(180deg);}
+    .query-body{display:none;padding:0 20px 18px;}
+    .query-body.open{display:block;}
+    .result-label{font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin:14px 0 8px;}
+    .result-table{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--border);}
+    .result-table table{font-size:0.82rem;}
+    .result-table thead{background:var(--bg-dark);}
+    .result-table thead th{color:var(--text);font-size:0.73rem;padding:9px 12px;}
+    .result-table tbody td{padding:8px 12px;}
+    .no-results{font-size:0.84rem;color:var(--text-muted);font-style:italic;margin-top:12px;}
+    .error-msg{color:var(--danger);font-size:0.84rem;margin-top:12px;}
+  </style>
+</head>
+<body>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>🔍 SQL Queries – Phase 5</h1>
+    <p>50 live queries from Supabase · 5 members · 5 basic + 5 advanced each</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Summary bar -->
+    <div class="card" style="margin-bottom:40px;">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;text-align:center;">
+        <% members.forEach((m, i) => { %>
+        <div style="padding:18px 10px;border-right:<%= i<4?'1px solid var(--border)':'none' %>">
+          <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:var(--primary)">10</div>
+          <div style="font-size:0.78rem;font-weight:700;color:var(--text);margin:4px 0 2px"><%= m.name.split(' ').slice(0,2).join(' ') %></div>
+          <div style="font-size:0.72rem;color:var(--text-muted)"><%= m.entity %></div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Per-member sections -->
+    <% members.forEach((member, mi) => { %>
+    <div class="member-section">
+      <div class="member-header">
+        <div>
+          <h2><%= member.name %></h2>
+          <div class="meta">Student ID: <%= member.id %></div>
+        </div>
+        <span class="entity-badge">📦 <%= member.entity %></span>
+      </div>
+
+      <div class="queries-body">
+
+        <!-- Basic Queries -->
+        <div class="query-type-header basic"><span>✅</span> Basic SQL Queries (5)</div>
+        <% member.basic.forEach((q, qi) => {
+             const keys = q.rows.length ? Object.keys(q.rows[0]) : [];
+             const qid  = `q-${mi}-b-${qi}`;
+        %>
+        <div class="query-item basic">
+          <div class="query-header" onclick="toggleQuery('<%= qid %>')">
+            <span class="query-num"><%= qi + 1 %></span>
+            <span class="query-title">
+              <%= q.title %>
+              <span class="count-pill"><%= q.rows.length %> row<%= q.rows.length !== 1 ? 's' : '' %></span>
+            </span>
+            <span class="query-toggle" id="<%= qid %>-arrow">▼</span>
+          </div>
+          <div class="query-body" id="<%= qid %>">
+            <% if (q.error) { %>
+              <p class="error-msg">⚠️ Error: <%= q.error %></p>
+            <% } else if (!q.rows.length) { %>
+              <p class="no-results">No results returned.</p>
+            <% } else { %>
+              <div class="result-label">Results (<%= q.rows.length %> row<%= q.rows.length!==1?'s':'' %>)</div>
+              <div class="result-table">
+                <table>
+                  <thead><tr><% keys.forEach(k => { %><th><%= k %></th><% }) %></tr></thead>
+                  <tbody>
+                    <% q.rows.forEach(row => { %><tr>
+                      <% keys.forEach(k => { %><td><%= row[k] !== null && row[k] !== undefined ? row[k] : '—' %></td><% }) %>
+                    </tr><% }) %>
+                  </tbody>
+                </table>
+              </div>
+            <% } %>
+          </div>
+        </div>
+        <% }) %>
+
+        <!-- Advanced Queries -->
+        <div class="query-type-header advanced"><span>⚡</span> Advanced SQL Queries (5)</div>
+        <% member.advanced.forEach((q, qi) => {
+             const keys = q.rows.length ? Object.keys(q.rows[0]) : [];
+             const qid  = `q-${mi}-a-${qi}`;
+        %>
+        <div class="query-item advanced">
+          <div class="query-header" onclick="toggleQuery('<%= qid %>')">
+            <span class="query-num"><%= qi + 1 %></span>
+            <span class="query-title">
+              <%= q.title %>
+              <span class="count-pill"><%= q.rows.length %> row<%= q.rows.length !== 1 ? 's' : '' %></span>
+            </span>
+            <span class="query-toggle" id="<%= qid %>-arrow">▼</span>
+          </div>
+          <div class="query-body" id="<%= qid %>">
+            <% if (q.error) { %>
+              <p class="error-msg">⚠️ Error: <%= q.error %></p>
+            <% } else if (!q.rows.length) { %>
+              <p class="no-results">No results returned.</p>
+            <% } else { %>
+              <div class="result-label">Results (<%= q.rows.length %> row<%= q.rows.length!==1?'s':'' %>)</div>
+              <div class="result-table">
+                <table>
+                  <thead><tr><% keys.forEach(k => { %><th><%= k %></th><% }) %></tr></thead>
+                  <tbody>
+                    <% q.rows.forEach(row => { %><tr>
+                      <% keys.forEach(k => { %><td><%= row[k] !== null && row[k] !== undefined ? row[k] : '—' %></td><% }) %>
+                    </tr><% }) %>
+                  </tbody>
+                </table>
+              </div>
+            <% } %>
+          </div>
+        </div>
+        <% }) %>
+
+      </div>
+    </div>
+    <% }) %>
+
+    <!-- Sustainability Reflection -->
+    <div class="card" style="margin-top:48px;">
+      <div class="form-section-title">🌱 Sustainability Reflection</div>
+      <p style="color:var(--text-muted);line-height:1.8;font-size:0.95rem;">
+        The Hospital Information System contributes to environmental and social sustainability by eliminating paper-based medical records, reducing physical waste and printing costs across healthcare facilities. Centralizing patient data digitally also reduces unnecessary repeat tests and physical transfers of files between hospitals, lowering the carbon footprint of healthcare logistics. Socially, the system improves access to medical history for patients and doctors regardless of location, supporting equitable healthcare delivery. The use of PostgreSQL's efficient indexing minimizes server resource consumption, and the lightweight Node.js backend ensures the system runs with minimal energy overhead.
+      </p>
+    </div>
+
+    <!-- Individual Contributions -->
+    <div class="card" style="margin-top:28px;">
+      <div class="form-section-title">👥 Individual Contributions</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Member</th><th>ID</th><th>Module</th><th>Contribution</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Nawaf Alfraikh</strong></td><td>222110778</td><td>Patients</td><td>Designed and implemented the patients table, full CRUD interface, and all 10 patient SQL queries.</td></tr>
+            <tr><td><strong>Mohammed Alshaibani</strong></td><td>N/A</td><td>Doctors</td><td>Designed and implemented the doctors table, full CRUD interface, and all 10 doctor SQL queries.</td></tr>
+            <tr><td><strong>Nawaf Alfraikh</strong></td><td>222110778</td><td>Appointments</td><td>Designed and implemented the appointments table, full CRUD interface, and all 10 appointment SQL queries.</td></tr>
+            <tr><td><strong>Omar Alwahashi</strong></td><td>223111219</td><td>Medical Records</td><td>Designed and implemented the medical records table, full CRUD interface, and all 10 medical record SQL queries.</td></tr>
+            <tr><td><strong>Omar Alwahashi</strong></td><td>223111219</td><td>Users & Staff</td><td>Designed and implemented the users and staff tables, full CRUD interface, and all 10 user SQL queries.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer><p>© 2026 HIS – CS340 Project · Supervised by SE371 Course</p></footer>
+<script src="/js/main.js"></script>
+<script>
+  function toggleQuery(id) {
+    const body  = document.getElementById(id);
+    const arrow = document.getElementById(id + '-arrow');
+    const isOpen = body.classList.toggle('open');
+    arrow.classList.toggle('open', isOpen);
+  }
+</script>
+</body>
+</html>

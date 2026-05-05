@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> – HIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>📅 Appointments</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <% if (success) { %><div class="alert alert-success">✅ <%= success %></div><% } %>
+    <% if (error)   { %><div class="alert alert-error">⚠️ <%= error %></div><% } %>
+
+    <!-- SCHEDULE APPOINTMENT -->
+    <div class="card" style="margin-bottom:32px;">
+      <div class="form-section-title">Schedule New Appointment</div>
+      <form action="/appointments" method="post" novalidate>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label>Patient <span class="required">*</span></label>
+            <select name="patient_id" required>
+              <option value="">Select patient</option>
+              <% patients.forEach(p => { %>
+                <option value="<%= p.patient_id %>"><%= p.full_name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Doctor <span class="required">*</span></label>
+            <select name="doctor_id" required>
+              <option value="">Select doctor</option>
+              <% doctors.forEach(d => { %>
+                <option value="<%= d.doctor_id %>"><%= d.full_name %> – <%= d.specialization %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="form-row form-row-3">
+          <div class="form-group">
+            <label>Date & Time <span class="required">*</span></label>
+            <input type="datetime-local" name="appointment_datetime" required />
+          </div>
+          <div class="form-group">
+            <label>Type <span class="required">*</span></label>
+            <select name="type" required>
+              <% ['Checkup','Follow-up','Consultation','Emergency','General','Surgery','Lab'].forEach(t => { %>
+                <option value="<%= t %>"><%= t %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <input type="text" name="notes" placeholder="Optional notes" />
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <button type="submit" class="btn btn-primary">➕ Schedule</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- APPOINTMENTS TABLE -->
+    <div class="card">
+      <div class="form-section-title" style="margin-bottom:20px;">All Appointments (<%= appointments.length %>)</div>
+      <% if (!appointments.length) { %>
+        <p class="text-muted text-center" style="padding:24px;">No appointments found.</p>
+      <% } else { %>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date & Time</th><th>Type</th><th>Status</th><th>Notes</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <% appointments.forEach(a => { %>
+              <tr>
+                <td><code><%= a.appointment_id %></code></td>
+                <td><strong><%= a.patient_name %></strong></td>
+                <td><%= a.doctor_name %></td>
+                <td style="white-space:nowrap;font-size:0.88rem"><%= new Date(a.appointment_datetime).toLocaleString('en-SA') %></td>
+                <td style="font-size:0.88rem"><%= a.type %></td>
+                <td><span class="badge badge-<%= a.status==='completed'?'resolved':a.status==='cancelled'?'closed':'open' %>"><%= a.status %></span></td>
+                <td style="font-size:0.82rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<%= a.notes %>"><%= a.notes||'—' %></td>
+                <td>
+                  <div style="display:flex;gap:6px;">
+                    <button onclick="toggleEdit('edit-<%= a.appointment_id %>')" class="btn btn-ghost btn-sm">Edit</button>
+                    <form action="/appointments/<%= a.appointment_id %>?_method=DELETE" method="post">
+                      <button type="submit" class="btn btn-danger btn-sm" data-confirm="Delete this appointment?">Del</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <tr id="edit-<%= a.appointment_id %>" style="display:none;background:var(--surface-2);">
+                <td colspan="8" style="padding:20px;">
+                  <form action="/appointments/<%= a.appointment_id %>?_method=PUT" method="post">
+                    <div class="form-row form-row-3">
+                      <div class="form-group">
+                        <label>Date & Time</label>
+                        <input type="datetime-local" name="appointment_datetime"
+                          value="<%= new Date(a.appointment_datetime).toISOString().slice(0,16) %>" required />
+                      </div>
+                      <div class="form-group">
+                        <label>Status</label>
+                        <select name="status">
+                          <% ['scheduled','completed','cancelled'].forEach(s => { %>
+                            <option value="<%= s %>" <%= a.status===s?'selected':'' %>><%= s %></option>
+                          <% }) %>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label>Type</label>
+                        <select name="type">
+                          <% ['Checkup','Follow-up','Consultation','Emergency','General','Surgery','Lab'].forEach(t => { %>
+                            <option value="<%= t %>" <%= a.type===t?'selected':'' %>><%= t %></option>
+                          <% }) %>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group"><label>Notes</label><input type="text" name="notes" value="<%= a.notes||'' %>" /></div>
+                    <button type="submit" class="btn btn-primary btn-sm">💾 Save</button>
+                    <button type="button" onclick="toggleEdit('edit-<%= a.appointment_id %>')" class="btn btn-ghost btn-sm">Cancel</button>
+                  </form>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<footer><p>© 2026 HIS – CS340 · SE371 Course</p></footer>
+<script src="/js/main.js"></script>
+<script>function toggleEdit(id){const r=document.getElementById(id);r.style.display=r.style.display==='none'?'table-row':'none';}</script>
+</body>
+</html>

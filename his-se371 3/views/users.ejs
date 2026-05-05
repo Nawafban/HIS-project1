@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> – HIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>👤 Users</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <% if (success) { %><div class="alert alert-success">✅ <%= success %></div><% } %>
+    <% if (error)   { %><div class="alert alert-error">⚠️ <%= error %></div><% } %>
+
+    <!-- ADD USER -->
+    <div class="card" style="margin-bottom:32px;">
+      <div class="form-section-title">Create New User</div>
+      <form action="/users" method="post" novalidate>
+        <div class="form-row form-row-3">
+          <div class="form-group">
+            <label>Full Name <span class="required">*</span></label>
+            <input type="text" name="full_name" placeholder="Nawaf Alfraikh" required />
+          </div>
+          <div class="form-group">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" name="email" placeholder="user@his.sa" required />
+          </div>
+          <div class="form-group">
+            <label>Role <span class="required">*</span></label>
+            <select name="role" required>
+              <option value="patient">Patient</option>
+              <option value="doctor">Doctor</option>
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <button type="submit" class="btn btn-primary">➕ Create User</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- USERS TABLE -->
+    <div class="card">
+      <div class="form-section-title" style="margin-bottom:20px;">All Users (<%= users.length %>)</div>
+      <% if (!users.length) { %>
+        <p class="text-muted text-center" style="padding:24px;">No users found.</p>
+      <% } else { %>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Created</th><th>Last Login</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <% users.forEach(u => { %>
+              <tr>
+                <td><code><%= u.user_id %></code></td>
+                <td><strong><%= u.full_name %></strong></td>
+                <td style="font-size:0.88rem"><%= u.email %></td>
+                <td>
+                  <span class="badge <%=
+                    u.role==='admin'   ? 'badge-closed' :
+                    u.role==='doctor'  ? 'badge-resolved' :
+                    u.role==='staff'   ? 'badge-open' : ''
+                  %>" style="<%= u.role==='patient'?'background:rgba(0,188,212,0.1);color:var(--accent-dark)':'' %>">
+                    <%= u.role %>
+                  </span>
+                </td>
+                <td style="font-size:0.85rem;white-space:nowrap"><%= new Date(u.created_date).toLocaleDateString('en-SA') %></td>
+                <td style="font-size:0.85rem;white-space:nowrap"><%= u.last_login ? new Date(u.last_login).toLocaleDateString('en-SA') : '—' %></td>
+                <td>
+                  <div style="display:flex;gap:6px;">
+                    <button onclick="toggleEdit('edit-<%= u.user_id %>')" class="btn btn-ghost btn-sm">Edit</button>
+                    <form action="/users/<%= u.user_id %>?_method=DELETE" method="post">
+                      <button type="submit" class="btn btn-danger btn-sm"
+                        data-confirm="Delete user <%= u.full_name %>? This will also delete linked patient/doctor records.">Del</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <tr id="edit-<%= u.user_id %>" style="display:none;background:var(--surface-2);">
+                <td colspan="7" style="padding:20px;">
+                  <form action="/users/<%= u.user_id %>?_method=PUT" method="post">
+                    <div class="form-row form-row-3">
+                      <div class="form-group"><label>Full Name</label><input type="text" name="full_name" value="<%= u.full_name %>" required /></div>
+                      <div class="form-group"><label>Email</label><input type="email" name="email" value="<%= u.email %>" required /></div>
+                      <div class="form-group"><label>Role</label>
+                        <select name="role">
+                          <% ['patient','doctor','staff','admin'].forEach(r => { %>
+                            <option value="<%= r %>" <%= u.role===r?'selected':'' %>><%= r.charAt(0).toUpperCase()+r.slice(1) %></option>
+                          <% }) %>
+                        </select>
+                      </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">💾 Save</button>
+                    <button type="button" onclick="toggleEdit('edit-<%= u.user_id %>')" class="btn btn-ghost btn-sm">Cancel</button>
+                  </form>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<footer><p>© 2026 HIS – CS340 · SE371 Course</p></footer>
+<script src="/js/main.js"></script>
+<script>function toggleEdit(id){const r=document.getElementById(id);r.style.display=r.style.display==='none'?'table-row':'none';}</script>
+</body>
+</html>

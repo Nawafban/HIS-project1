@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<%- include('partials/nav') %>
+
+<section class="hero">
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="hero-badge">🏥 Hospital Information System</div>
+    <h1>Your Health,<br><span>All in One Place</span></h1>
+    <p>A secure, centralized platform for managing patient records, doctor appointments, and medical history across Saudi healthcare facilities.</p>
+    <div class="hero-cta">
+      <a href="/patients"     class="btn btn-primary">View Patients</a>
+      <a href="/appointments" class="btn btn-outline">Appointments</a>
+    </div>
+  </div>
+</section>
+
+<div class="stats-strip">
+  <div class="stats-grid">
+    <div class="stat-item"><div class="stat-num">10</div><div class="stat-label">Patients</div></div>
+    <div class="stat-item"><div class="stat-num">6</div><div class="stat-label">Doctors</div></div>
+    <div class="stat-item"><div class="stat-num">14</div><div class="stat-label">Appointments</div></div>
+    <div class="stat-item"><div class="stat-num">8</div><div class="stat-label">Medical Records</div></div>
+  </div>
+</div>
+
+<section class="section features" style="background:var(--surface);">
+  <div class="container">
+    <div class="section-heading">
+      <span class="overline">System Modules</span>
+      <h2>Everything You Need</h2>
+    </div>
+    <div class="features-grid">
+      <a href="/patients" style="text-decoration:none;">
+        <div class="feature-card">
+          <div class="feature-icon">🧑‍⚕️</div>
+          <h3>Patients</h3>
+          <p>View and manage full patient profiles including blood type, allergies, insurance, and emergency contacts.</p>
+        </div>
+      </a>
+      <a href="/doctors" style="text-decoration:none;">
+        <div class="feature-card">
+          <div class="feature-icon">👨‍⚕️</div>
+          <h3>Doctors</h3>
+          <p>Manage doctor records with specializations, license numbers, and hospital affiliations.</p>
+        </div>
+      </a>
+      <a href="/appointments" style="text-decoration:none;">
+        <div class="feature-card">
+          <div class="feature-icon">📅</div>
+          <h3>Appointments</h3>
+          <p>Schedule, update, and track appointments between patients and doctors with status tracking.</p>
+        </div>
+      </a>
+      <a href="/records" style="text-decoration:none;">
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>Medical Records</h3>
+          <p>Store and retrieve diagnoses, prescriptions, treatment notes, and lab results per patient visit.</p>
+        </div>
+      </a>
+      <a href="/users" style="text-decoration:none;">
+        <div class="feature-card">
+          <div class="feature-icon">👤</div>
+          <h3>Users</h3>
+          <p>Manage all system users across roles: patients, doctors, staff, and administrators.</p>
+        </div>
+      </a>
+      <a href="/profile" style="text-decoration:none;">
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>My Profile</h3>
+          <p>View your account details, role-specific information, and quick access to your records.</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer><p>© 2026 HIS – Hospital Information System · Prince Sultan University</p></footer>
+<script src="/js/main.js"></script>
+</body>
+</html>

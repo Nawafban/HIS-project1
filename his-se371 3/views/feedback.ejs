@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> – HISSystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>Feedback &amp; Support</h1>
+    <p>Send us a message or search existing feedback below.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <% if (success) { %>
+      <div class="alert alert-success">✅ <%= success %></div>
+    <% } %>
+    <% if (error) { %>
+      <div class="alert alert-error">⚠️ <%= error %></div>
+    <% } %>
+
+    <div class="grid-2" style="align-items:start;gap:32px;">
+
+      <!-- ── Contact Form (CREATE) ───────────────────────────── -->
+      <div class="card">
+        <div class="form-section-title">Send a Message</div>
+        <form action="/feedback" method="post" novalidate>
+          <div class="form-group">
+            <label for="fb_name">Full Name <span class="required">*</span></label>
+            <input type="text" id="fb_name" name="name" placeholder="Your name" required minlength="2" />
+          </div>
+          <div class="form-group">
+            <label for="fb_email">Email Address <span class="required">*</span></label>
+            <input type="email" id="fb_email" name="email" placeholder="your@email.sa" required />
+          </div>
+          <div class="form-group">
+            <label for="fb_subject">Subject <span class="required">*</span></label>
+            <input type="text" id="fb_subject" name="subject" placeholder="e.g. Login issue, Feature request…" required minlength="4" />
+          </div>
+          <div class="form-group">
+            <label for="fb_message">Message <span class="required">*</span></label>
+            <textarea id="fb_message" name="message" rows="6" placeholder="Describe your issue or feedback in detail…" required minlength="10"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">📨 Send Message</button>
+        </form>
+      </div>
+
+      <!-- ── Search & List ───────────────────────────────────── -->
+      <div>
+        <!-- Search -->
+        <div class="card" style="margin-bottom:24px;">
+          <div class="form-section-title">Search Feedback</div>
+          <form action="/feedback" method="get" novalidate>
+            <div class="search-box">
+              <input type="text" name="q" value="<%= keyword %>" placeholder="Search by name, subject or message…" />
+              <button type="submit" class="btn btn-primary" style="border-radius:var(--radius-sm);">Search</button>
+            </div>
+            <% if (keyword) { %>
+              <p class="form-hint mt-4"><%= feedback.length %> result(s) for "<strong><%= keyword %></strong>" · <a href="/feedback">Clear</a></p>
+            <% } %>
+          </form>
+        </div>
+
+        <!-- Feedback table -->
+        <div class="card">
+          <div class="flex justify-between items-center mb-4">
+            <div class="form-section-title" style="margin-bottom:0;border:none;padding:0;">
+              All Feedback <span style="font-size:0.85rem;font-weight:400;color:var(--text-muted)">(<%= feedback.length %>)</span>
+            </div>
+          </div>
+          <% if (feedback.length === 0) { %>
+            <p class="text-muted text-center" style="padding:24px 0;">No feedback found.</p>
+          <% } else { %>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% feedback.forEach(fb => { %>
+                    <tr>
+                      <td>
+                        <strong><%= fb.name %></strong><br />
+                        <span style="font-size:0.8rem;color:var(--text-muted);"><%= fb.email %></span>
+                      </td>
+                      <td>
+                        <span title="<%= fb.message %>"><%= fb.subject %></span>
+                        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;"><%= fb.message %></p>
+                      </td>
+                      <td><span class="badge badge-<%= fb.status %>"><%= fb.status %></span></td>
+                      <td style="white-space:nowrap;font-size:0.85rem;"><%= new Date(fb.created_at).toLocaleDateString('en-SA') %></td>
+                      <td>
+                        <form action="/feedback/<%= fb.feedback_id %>?_method=DELETE" method="post" style="margin:0;">
+                          <button type="submit" class="btn btn-danger btn-sm"
+                            data-confirm="Delete this feedback from <%= fb.name %>?">Del</button>
+                        </form>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 HISSystem · SE371 · Nawaf Alfraikh · Omar Alwahashi · Mohammed Alshaibani</p>
+</footer>
+<script src="/js/main.js"></script>
+</body>
+</html>

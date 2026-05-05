@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> – HISSystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>Subscription Plans</h1>
+    <p>Choose the plan that fits your facility. All plans include a 14-day free trial.</p>
+  </div>
+</div>
+
+<section class="section pricing">
+  <div class="container">
+
+    <% if (success) { %>
+      <div class="alert alert-success">✅ <%= success %></div>
+    <% } %>
+    <% if (error) { %>
+      <div class="alert alert-error">⚠️ <%= error %></div>
+    <% } %>
+
+    <!-- ── Plans Grid (DB-rendered) ──────────────────────────── -->
+    <% if (plans.length === 0) { %>
+      <p class="text-center text-muted">No plans available yet. Add one below.</p>
+    <% } else { %>
+      <div class="pricing-grid">
+        <% plans.forEach(plan => { %>
+          <div class="plan-card <%= plan.is_popular ? 'popular' : '' %>">
+            <% if (plan.is_popular) { %><div class="popular-badge">⭐ Most Popular</div><% } %>
+            <div class="plan-name"><%= plan.name %></div>
+            <div class="plan-price">
+              <span class="currency">SAR</span>
+              <span class="amount"><%= plan.price %></span>
+              <span class="period">/<%= plan.billing_cycle %></span>
+            </div>
+            <p class="plan-desc">
+              <%= plan.max_users === 999 ? 'Unlimited' : plan.max_users %> users ·
+              <%= plan.max_patients >= 999999 ? 'Unlimited' : plan.max_patients.toLocaleString() %> patients ·
+              <%= plan.storage_gb %>GB storage
+            </p>
+            <ul class="plan-features">
+              <% plan.featuresArr.forEach(f => { %>
+                <li><%= f %></li>
+              <% }) %>
+            </ul>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <a href="/plans/<%= plan.plan_id %>" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;">Details</a>
+              <!-- Delete -->
+              <form action="/plans/<%= plan.plan_id %>?_method=DELETE" method="post" style="margin:0;">
+                <button type="submit" class="btn btn-danger btn-sm"
+                  data-confirm="Delete the <%= plan.name %> plan? This cannot be undone.">Delete</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <!-- ── Add / Edit Plan Form ───────────────────────────────── -->
+    <div class="card mt-8">
+      <div class="form-section-title">Add New Plan</div>
+      <form action="/plans" method="post" novalidate>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="name">Plan Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name" placeholder="e.g. Basic" required minlength="2" />
+          </div>
+          <div class="form-group">
+            <label for="price">Price (SAR) <span class="required">*</span></label>
+            <input type="number" id="price" name="price" placeholder="99.00" required min="0" step="0.01" />
+          </div>
+        </div>
+        <div class="form-row form-row-3">
+          <div class="form-group">
+            <label for="billing_cycle">Billing Cycle</label>
+            <select id="billing_cycle" name="billing_cycle">
+              <option value="monthly">Monthly</option>
+              <option value="annual">Annual</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="max_users">Max Users <span class="required">*</span></label>
+            <input type="number" id="max_users" name="max_users" placeholder="10" required min="1" />
+          </div>
+          <div class="form-group">
+            <label for="max_patients">Max Patients <span class="required">*</span></label>
+            <input type="number" id="max_patients" name="max_patients" placeholder="1000" required min="1" />
+          </div>
+        </div>
+        <div class="form-row form-row-2">
+          <div class="form-group">
+            <label for="storage_gb">Storage (GB) <span class="required">*</span></label>
+            <input type="number" id="storage_gb" name="storage_gb" placeholder="20" required min="1" />
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:4px;">
+            <div class="checkbox-group">
+              <input type="checkbox" id="is_popular" name="is_popular" />
+              <label for="is_popular" style="margin:0;">Mark as "Most Popular"</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="features">Features <span class="required">*</span> <span style="font-weight:400;color:var(--text-muted)">(one per line)</span></label>
+          <textarea id="features" name="features" rows="5"
+            placeholder="Patient records&#10;Appointment scheduling&#10;Priority support" required></textarea>
+        </div>
+        <div style="text-align:right;">
+          <button type="submit" class="btn btn-primary">➕ Create Plan</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 HISSystem · SE371 · Nawaf Alfraikh · Omar Alwahashi · Mohammed Alshaibani · <a href="/feedback">Support</a></p>
+</footer>
+<script src="/js/main.js"></script>
+</body>
+</html>

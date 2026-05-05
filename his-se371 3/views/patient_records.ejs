@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title><%= title %> – HIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    .record-card{background:#fff;border-radius:14px;border:1px solid #d1dce8;padding:24px 28px;margin-bottom:16px;transition:box-shadow 0.2s;}
+    .record-card:hover{box-shadow:0 6px 24px rgba(10,37,64,0.10);}
+    .record-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+    .record-date{font-family:'Sora',sans-serif;font-size:0.9rem;font-weight:700;color:#0a2540;}
+    .record-type-badge{padding:4px 12px;border-radius:100px;font-size:0.75rem;font-weight:700;text-transform:uppercase;}
+    .type-checkup{background:#e8f5e9;color:#2e7d32;}
+    .type-follow-up{background:#e3f2fd;color:#1565c0;}
+    .type-emergency{background:#fdecea;color:#c62828;}
+    .type-surgery{background:#f3e5f5;color:#6a1b9a;}
+    .type-lab{background:#fff3e0;color:#e65100;}
+    .type-consultation{background:#e0f7fa;color:#006064;}
+    .record-detail{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:4px;}
+    .detail-item label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#5a7598;margin-bottom:4px;display:block;}
+    .detail-item span{font-size:0.88rem;color:#0a2540;line-height:1.5;}
+    .detail-item span.empty{color:#8fa8c8;font-style:italic;}
+    .patient-header{background:linear-gradient(135deg,#0a2540,#103a6e);border-radius:14px;padding:24px 28px;margin-bottom:28px;color:#fff;display:flex;align-items:center;gap:20px;}
+    .patient-avatar{width:56px;height:56px;border-radius:50%;background:#00bcd4;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;font-family:'Sora',sans-serif;flex-shrink:0;}
+    .no-records{text-align:center;padding:60px 20px;color:#5a7598;}
+    .no-records .icon{font-size:3rem;margin-bottom:12px;}
+  </style>
+</head>
+<body>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>📋 Medical Records</h1>
+    <p>Complete medical history for this patient</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <% if (patient) { %>
+    <!-- Patient Summary -->
+    <div class="patient-header">
+      <div class="patient-avatar"><%= patient.full_name.charAt(0) %></div>
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:4px;"><%= patient.full_name %></div>
+        <div style="color:rgba(255,255,255,0.6);font-size:0.88rem;">
+          Blood Type: <strong style="color:#00bcd4"><%= patient.blood_type %></strong>
+          &nbsp;·&nbsp; Gender: <%= patient.gender %>
+          &nbsp;·&nbsp; DOB: <%= patient.date_of_birth %>
+          <% if (patient.allergies) { %>&nbsp;·&nbsp; ⚠️ Allergies: <strong style="color:#ffc107"><%= patient.allergies %></strong><% } %>
+        </div>
+      </div>
+      <div style="margin-left:auto;">
+        <a href="/patients" style="color:rgba(255,255,255,0.5);font-size:0.85rem;text-decoration:none;">← Back to Patients</a>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Records Count -->
+    <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="color:#5a7598;font-size:0.9rem;"><strong style="color:#0a2540"><%= records.length %></strong> record<%= records.length!==1?'s':'' %> found</span>
+      <a href="/records/new" class="nav-btn" style="padding:8px 18px;background:#00bcd4;color:#fff;border-radius:8px;font-size:0.88rem;font-weight:600;text-decoration:none;">+ Add Record</a>
+    </div>
+
+    <!-- Records List -->
+    <% if (records.length === 0) { %>
+    <div class="no-records">
+      <div class="icon">📭</div>
+      <p>No medical records found for this patient.</p>
+    </div>
+    <% } else { %>
+      <% records.forEach(r => { %>
+      <div class="record-card">
+        <div class="record-header">
+          <div>
+            <div class="record-date">📅 <%= new Date(r.visit_date).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) %></div>
+            <div style="color:#5a7598;font-size:0.85rem;margin-top:3px;">Dr. <%= r.doctor_name %> · <%= r.specialization %></div>
+          </div>
+          <span class="record-type-badge type-<%= r.record_type ? r.record_type.replace('-','-') : 'checkup' %>"><%= r.record_type || 'checkup' %></span>
+        </div>
+        <div class="record-detail">
+          <div class="detail-item">
+            <label>Diagnosis</label>
+            <span><%= r.diagnosis || '—' %></span>
+          </div>
+          <div class="detail-item">
+            <label>Prescription</label>
+            <span class="<%= r.prescription ? '' : 'empty' %>"><%= r.prescription || 'None' %></span>
+          </div>
+          <div class="detail-item">
+            <label>Treatment Notes</label>
+            <span class="<%= r.treatment_notes ? '' : 'empty' %>"><%= r.treatment_notes || 'None' %></span>
+          </div>
+          <div class="detail-item">
+            <label>Test Results</label>
+            <span class="<%= r.test_results ? '' : 'empty' %>"><%= r.test_results || 'None' %></span>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    <% } %>
+
+  </div>
+</section>
+
+<footer><p>© 2026 HIS – Hospital Information System</p></footer>
+<script src="/js/main.js"></script>
+</body>
+</html>

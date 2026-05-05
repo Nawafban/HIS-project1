@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> – HIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>🔍 Search</h1>
+    <p>Search across patients, doctors, appointments, records and users</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Search bar -->
+    <div class="card" style="margin-bottom:32px;">
+      <form action="/search" method="get">
+        <div style="display:flex;gap:12px;">
+          <input type="text" name="q" value="<%= q %>" placeholder="Search by name, email, diagnosis, specialization…"
+            style="flex:1;" autofocus />
+          <button type="submit" class="btn btn-primary" style="border-radius:var(--radius-sm);white-space:nowrap;">🔍 Search</button>
+        </div>
+      </form>
+    </div>
+
+    <% if (results === null) { %>
+      <div style="text-align:center;padding:60px 0;color:var(--text-muted);">
+        <div style="font-size:3rem;margin-bottom:16px;">🔍</div>
+        <p>Type something above to search across all hospital records.</p>
+      </div>
+
+    <% } else if (!results.length) { %>
+      <div style="text-align:center;padding:60px 0;color:var(--text-muted);">
+        <div style="font-size:3rem;margin-bottom:16px;">😕</div>
+        <p>No results found for <strong>"<%= q %>"</strong></p>
+        <a href="/search" class="btn btn-ghost btn-sm mt-4" style="margin-top:16px;">Clear Search</a>
+      </div>
+
+    <% } else { %>
+      <div style="margin-bottom:20px;color:var(--text-muted);font-size:0.92rem;">
+        Found <strong style="color:var(--text)"><%= results.length %></strong> result<%= results.length!==1?'s':'' %> for "<strong><%= q %></strong>"
+      </div>
+
+      <% const typeColors = { Patient:'rgba(0,188,212,0.1)', Doctor:'rgba(0,200,150,0.1)', 'Medical Record':'rgba(239,83,80,0.1)', Appointment:'rgba(255,193,7,0.1)', User:'rgba(156,39,176,0.1)' };
+         const typeIcons  = { Patient:'🧑‍⚕️', Doctor:'👨‍⚕️', 'Medical Record':'📋', Appointment:'📅', User:'👤' };
+         const grouped = {};
+         results.forEach(r => { if (!grouped[r.type]) grouped[r.type] = []; grouped[r.type].push(r); });
+      %>
+
+      <% Object.entries(grouped).forEach(([type, items]) => { %>
+      <div class="card" style="margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <span style="font-size:1.3rem"><%= typeIcons[type]||'📄' %></span>
+          <span style="font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--primary)"><%= type %>s</span>
+          <span class="count-pill" style="display:inline-block;background:var(--bg-dark);border:1px solid var(--border);border-radius:100px;padding:2px 10px;font-size:0.76rem;color:var(--text-muted);margin-left:4px;"><%= items.length %></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <% items.forEach(r => { %>
+              <tr style="cursor:pointer;" onclick="window.location='<%= r.link %>'">
+                <td style="width:36px;">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:<%= typeColors[type]||'var(--bg-dark)' %>;font-size:1rem;">
+                    <%= typeIcons[type]||'📄' %>
+                  </span>
+                </td>
+                <td><strong><%= r.name %></strong></td>
+                <td style="color:var(--text-muted);font-size:0.88rem"><%= r.email || '' %></td>
+                <td>
+                  <% if (r.detail) { %>
+                    <span class="badge badge-resolved" style="font-size:0.75rem;text-transform:capitalize"><%= r.detail %></span>
+                  <% } %>
+                </td>
+                <td style="color:var(--text-muted);font-size:0.85rem"><%= r.extra || '' %></td>
+                <td style="text-align:right">
+                  <a href="<%= r.link %>" class="btn btn-ghost btn-sm">View →</a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <% }) %>
+    <% } %>
+
+  </div>
+</section>
+
+<footer><p>© 2026 HIS – SE371 · Nawaf Alfraikh · Omar Alwahashi · Mohammed Alshaibani</p></footer>
+<script src="/js/main.js"></script>
+</body>
+</html>

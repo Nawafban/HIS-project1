@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> – HIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .dash-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.22s;
+    }
+    .stat-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .stat-icon { width: 52px; height: 52px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+    .stat-body .num { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1; }
+    .stat-body .lbl { font-size: 0.84rem; color: var(--text-muted); margin-top: 4px; }
+    .dash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .dash-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .bar-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .bar-item { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; }
+    .bar-item .lbl { min-width: 100px; color: var(--text-muted); text-transform: capitalize; }
+    .bar-track { flex: 1; height: 10px; background: var(--bg-dark); border-radius: 99px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+    .bar-item .cnt { min-width: 28px; text-align: right; font-weight: 700; color: var(--text); font-size: 0.85rem; }
+    .recent-table { font-size: 0.88rem; }
+    .badge-scheduled { background: rgba(0,188,212,0.12); color: var(--accent-dark); }
+    .badge-completed  { background: rgba(0,200,150,0.12); color: #00836a; }
+    .badge-cancelled  { background: rgba(239,83,80,0.12); color: var(--danger); }
+    .donut-wrap { display: flex; align-items: center; gap: 24px; }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; color: var(--text-muted); }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<%- include('partials/nav') %>
+
+<div class="page-header">
+  <div class="container" style="position:relative;z-index:1;">
+    <h1>📊 Live Dashboard</h1>
+    <p>Real-time statistics pulled from the database · Auto-updates on every page load</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error">⚠️ <%= error %></div>
+    <% } %>
+
+    <!-- KPI CARDS -->
+    <div class="dash-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(0,188,212,0.1);">🧑‍⚕️</div>
+        <div class="stat-body"><div class="num"><%= counts.total_patients || 0 %></div><div class="lbl">Total Patients</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(0,200,150,0.1);">👨‍⚕️</div>
+        <div class="stat-body"><div class="num"><%= counts.total_doctors || 0 %></div><div class="lbl">Total Doctors</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(255,193,7,0.1);">📅</div>
+        <div class="stat-body"><div class="num"><%= counts.total_appointments || 0 %></div><div class="lbl">Appointments</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(239,83,80,0.1);">📋</div>
+        <div class="stat-body"><div class="num"><%= counts.total_records || 0 %></div><div class="lbl">Medical Records</div></div>
+      </div>
+    </div>
+
+    <div class="dash-row">
+      <!-- Appointment Status -->
+      <div class="card">
+        <div class="form-section-title" style="margin-bottom:20px;">Appointments by Status</div>
+        <% const statusColors = { scheduled:'#00bcd4', completed:'#00c896', cancelled:'#ef5350' };
+           const totalAppts = apptByStatus.reduce((s,r) => s + parseInt(r.total), 0); %>
+        <div class="donut-wrap">
+          <svg width="110" height="110" viewBox="0 0 36 36">
+            <%
+              let offset = 25; // start at top
+              const segments = apptByStatus.map(r => ({
+                label: r.status,
+                pct: totalAppts ? (parseInt(r.total) / totalAppts * 100) : 0,
+                color: statusColors[r.status] || '#ccc'
+              }));
+            %>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--bg-dark)" stroke-width="3.5"/>
+            <% segments.forEach(seg => { %>
+              <circle cx="18" cy="18" r="15.9" fill="none"
+                stroke="<%= seg.color %>"
+                stroke-width="3.5"
+                stroke-dasharray="<%= seg.pct %> <%= 100 - seg.pct %>"
+                stroke-dashoffset="<%= offset %>"
+                style="transition:stroke-dasharray 0.8s ease;" />
+              <% offset -= seg.pct; %>
+            <% }) %>
+            <text x="18" y="20" text-anchor="middle" style="font-size:5px;font-weight:700;fill:var(--text)"><%= totalAppts %></text>
+          </svg>
+          <div class="donut-legend">
+            <% apptByStatus.forEach(r => { %>
+              <div class="legend-item">
+                <span class="legend-dot" style="background:<%= statusColors[r.status] || '#ccc' %>"></span>
+                <span style="text-transform:capitalize"><%= r.status %></span>
+                <strong style="margin-left:auto;color:var(--text)"><%= r.total %></strong>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patients by Gender -->
+      <div class="card">
+        <div class="form-section-title" style="margin-bottom:20px;">Patients by Gender</div>
+        <% const genderColors = { male:'#00bcd4', female:'#e91e8c', other:'#ff9800' };
+           const totalGender = patientsByGender.reduce((s,r) => s + parseInt(r.total), 0); %>
+        <div class="bar-wrap">
+          <% patientsByGender.forEach(r => { const pct = totalGender ? Math.round(parseInt(r.total)/totalGender*100) : 0; %>
+          <div class="bar-item">
+            <span class="lbl" style="text-transform:capitalize"><%= r.gender %></span>
+            <div class="bar-track"><div class="bar-fill" style="width:<%= pct %>%;background:<%= genderColors[r.gender]||'#ccc' %>"></div></div>
+            <span class="cnt"><%= r.total %></span>
+          </div>
+          <% }) %>
+        </div>
+        <div style="margin-top:20px;">
+          <div class="form-section-title" style="margin-bottom:16px;border:none;">Records by Type</div>
+          <div class="bar-wrap">
+            <% const maxRec = recordsByType.length ? Math.max(...recordsByType.map(r => parseInt(r.total))) : 1;
+               const recColors = ['#00bcd4','#00c896','#ff9800','#e91e8c','#9c27b0','#ef5350'];
+               recordsByType.forEach((r, i) => { const pct = Math.round(parseInt(r.total)/maxRec*100); %>
+            <div class="bar-item">
+              <span class="lbl"><%= r.record_type %></span>
+              <div class="bar-track"><div class="bar-fill" style="width:<%= pct %>%;background:<%= recColors[i%recColors.length] %>"></div></div>
+              <span class="cnt"><%= r.total %></span>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-row">
+      <!-- Top Doctors -->
+      <div class="card">
+        <div class="form-section-title" style="margin-bottom:20px;">Top Doctors by Appointments</div>
+        <% const maxDoc = topDoctors.length ? Math.max(...topDoctors.map(d => parseInt(d.appointments))) : 1; %>
+        <div class="bar-wrap">
+          <% topDoctors.forEach((d, i) => { const pct = Math.round(parseInt(d.appointments)/maxDoc*100); %>
+          <div class="bar-item">
+            <span class="lbl" style="min-width:150px"><%= d.doctor.replace('Dr. ','') %></span>
+            <div class="bar-track"><div class="bar-fill" style="width:<%= pct %>%;background:#00bcd4"></div></div>
+            <span class="cnt"><%= d.appointments %></span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Monthly Appointments -->
+      <div class="card">
+        <div class="form-section-title" style="margin-bottom:20px;">Appointments by Month</div>
+        <% const maxMonth = apptByMonth.length ? Math.max(...apptByMonth.map(r => parseInt(r.total))) : 1; %>
+        <div class="bar-wrap">
+          <% [...apptByMonth].reverse().forEach((r, i) => { const pct = Math.round(parseInt(r.total)/maxMonth*100); %>
+          <div class="bar-item">
+            <span class="lbl" style="min-width:80px;font-size:0.82rem"><%= r.month %></span>
+            <div class="bar-track"><div class="bar-fill" style="width:<%= pct %>%;background:#00c896"></div></div>
+            <span class="cnt"><%= r.total %></span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Appointments -->
+    <div class="card">
+      <div class="form-section-title" style="margin-bottom:20px;">Recent Appointments</div>
+      <div class="table-wrap">
+        <table class="recent-table">
+          <thead><tr><th>Patient</th><th>Doctor</th><th>Date & Time</th><th>Type</th><th>Status</th></tr></thead>
+          <tbody>
+            <% recentAppointments.forEach(a => { %>
+            <tr>
+              <td><strong><%= a.patient %></strong></td>
+              <td><%= a.doctor %></td>
+              <td style="white-space:nowrap"><%= a.dt %></td>
+              <td><%= a.type %></td>
+              <td><span class="badge badge-<%= a.status %>"><%= a.status %></span></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer><p>© 2026 HIS – SE371 · Nawaf Alfraikh · Omar Alwahashi · Mohammed Alshaibani</p></footer>
+<script src="/js/main.js"></script>
+</body>
+</html>

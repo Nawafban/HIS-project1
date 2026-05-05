@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> – HISSystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<%- include('partials/nav') %>
+
+<!-- Hero -->
+<div class="plan-detail-hero">
+  <div class="container" style="position:relative;z-index:1;text-align:center;">
+    <% if (plan.is_popular) { %>
+      <div class="hero-badge" style="margin-bottom:16px;">⭐ Most Popular Plan</div>
+    <% } %>
+    <h1><%= plan.name %> Plan</h1>
+    <div class="price-tag">SAR <%= parseFloat(plan.price).toLocaleString() %><span style="font-size:1.4rem;font-weight:500;color:rgba(255,255,255,0.6)">/<%= plan.billing_cycle %></span></div>
+    <a href="/plans" class="btn btn-outline" style="margin-top:8px;">← All Plans</a>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:32px;align-items:start;">
+
+      <!-- Left: features list -->
+      <div class="card">
+        <h2 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--primary);margin-bottom:20px;">What's Included</h2>
+        <ul class="plan-features" style="font-size:1rem;">
+          <% plan.featuresArr.forEach(f => { %>
+            <li style="padding:10px 0;border-bottom:1px solid var(--border);"><%= f %></li>
+          <% }) %>
+        </ul>
+      </div>
+
+      <!-- Right: specs + edit form -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <!-- Specs card -->
+        <div class="card">
+          <h3 style="font-family:var(--font-display);font-weight:700;color:var(--primary);margin-bottom:16px;">Plan Specifications</h3>
+          <div style="display:flex;flex-direction:column;gap:12px;font-size:0.93rem;">
+            <div class="flex justify-between"><span class="text-muted">Max Users</span><strong><%= plan.max_users >= 999 ? 'Unlimited' : plan.max_users %></strong></div>
+            <div class="flex justify-between"><span class="text-muted">Max Patients</span><strong><%= plan.max_patients >= 999999 ? 'Unlimited' : plan.max_patients.toLocaleString() %></strong></div>
+            <div class="flex justify-between"><span class="text-muted">Storage</span><strong><%= plan.storage_gb %> GB</strong></div>
+            <div class="flex justify-between"><span class="text-muted">Billing</span><strong style="text-transform:capitalize;"><%= plan.billing_cycle %></strong></div>
+            <div class="flex justify-between"><span class="text-muted">Created</span><strong><%= new Date(plan.created_at).toLocaleDateString('en-SA') %></strong></div>
+            <div class="flex justify-between"><span class="text-muted">Popular</span><strong><%= plan.is_popular ? '✅ Yes' : 'No' %></strong></div>
+          </div>
+        </div>
+
+        <!-- Edit form (PUT) -->
+        <div class="card">
+          <h3 style="font-family:var(--font-display);font-weight:700;color:var(--primary);margin-bottom:16px;">Edit This Plan</h3>
+          <form action="/plans/<%= plan.plan_id %>?_method=PUT" method="post" novalidate>
+            <div class="form-group">
+              <label>Plan Name</label>
+              <input type="text" name="name" value="<%= plan.name %>" required />
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label>Price (SAR)</label>
+                <input type="number" name="price" value="<%= plan.price %>" step="0.01" min="0" required />
+              </div>
+              <div class="form-group">
+                <label>Billing</label>
+                <select name="billing_cycle">
+                  <option value="monthly" <%= plan.billing_cycle==='monthly'?'selected':'' %>>Monthly</option>
+                  <option value="annual"  <%= plan.billing_cycle==='annual' ?'selected':'' %>>Annual</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label>Max Users</label>
+                <input type="number" name="max_users" value="<%= plan.max_users %>" min="1" required />
+              </div>
+              <div class="form-group">
+                <label>Storage (GB)</label>
+                <input type="number" name="storage_gb" value="<%= plan.storage_gb %>" min="1" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Max Patients</label>
+              <input type="number" name="max_patients" value="<%= plan.max_patients %>" min="1" required />
+            </div>
+            <div class="form-group">
+              <label>Features (one per line)</label>
+              <textarea name="features" rows="5" required><%= plan.featuresArr.join('\n') %></textarea>
+            </div>
+            <div class="checkbox-group" style="margin-bottom:16px;">
+              <input type="checkbox" name="is_popular" id="ep" <%= plan.is_popular ? 'checked' : '' %> />
+              <label for="ep" style="margin:0;">Mark as Most Popular</label>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">💾 Save Changes</button>
+          </form>
+        </div>
+
+        <!-- Delete -->
+        <form action="/plans/<%= plan.plan_id %>?_method=DELETE" method="post">
+          <button type="submit" class="btn btn-danger" style="width:100%;"
+            data-confirm="Permanently delete the <%= plan.name %> plan?">🗑 Delete This Plan</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 HISSystem · <a href="/feedback">Support</a></p>
+</footer>
+<script src="/js/main.js"></script>
+</body>
+</html>
